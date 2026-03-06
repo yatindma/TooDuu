@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff41;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#00aa2a;stop-opacity:1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-strong">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#0a0a0f"/>
+
+  <!-- Subtle grid lines -->
+  <g opacity="0.06" stroke="#00ff41" stroke-width="1">
+    <line x1="0" y1="128" x2="512" y2="128"/>
+    <line x1="0" y1="256" x2="512" y2="256"/>
+    <line x1="0" y1="384" x2="512" y2="384"/>
+    <line x1="128" y1="0" x2="128" y2="512"/>
+    <line x1="256" y1="0" x2="256" y2="512"/>
+    <line x1="384" y1="0" x2="384" y2="512"/>
+  </g>
+
+  <!-- Terminal window frame -->
+  <rect x="56" y="72" width="400" height="368" rx="20" fill="none" stroke="url(#g1)" stroke-width="3" filter="url(#glow)" opacity="0.8"/>
+
+  <!-- Title bar -->
+  <rect x="56" y="72" width="400" height="44" rx="20" fill="#00ff41" opacity="0.08"/>
+  <rect x="56" y="96" width="400" height="20" fill="#00ff41" opacity="0.08"/>
+
+  <!-- Title bar dots -->
+  <circle cx="88" cy="94" r="7" fill="#ff5f57" opacity="0.9"/>
+  <circle cx="112" cy="94" r="7" fill="#febc2e" opacity="0.9"/>
+  <circle cx="136" cy="94" r="7" fill="#28c840" opacity="0.9"/>
+
+  <!-- Terminal prompt line 1: > TOODUU -->
+  <g filter="url(#glow-strong)">
+    <text x="88" y="172" font-family="monospace" font-weight="900" font-size="28" fill="#00ff41" opacity="0.5">&gt;_</text>
+  </g>
+
+  <!-- Checkmark todo item 1 (completed) -->
+  <g transform="translate(88, 200)" filter="url(#glow)">
+    <rect x="0" y="0" width="22" height="22" rx="5" fill="#00ff41" opacity="0.25" stroke="#00ff41" stroke-width="2"/>
+    <polyline points="5,11 9,16 17,6" fill="none" stroke="#00ff41" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="34" y="6" width="160" height="10" rx="5" fill="#00ff41" opacity="0.35"/>
+  </g>
+
+  <!-- Checkmark todo item 2 (completed) -->
+  <g transform="translate(88, 244)" filter="url(#glow)">
+    <rect x="0" y="0" width="22" height="22" rx="5" fill="#00ff41" opacity="0.25" stroke="#00ff41" stroke-width="2"/>
+    <polyline points="5,11 9,16 17,6" fill="none" stroke="#00ff41" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="34" y="6" width="220" height="10" rx="5" fill="#00ff41" opacity="0.25"/>
+  </g>
+
+  <!-- Empty todo item 3 (pending) -->
+  <g transform="translate(88, 288)" filter="url(#glow)">
+    <rect x="0" y="0" width="22" height="22" rx="5" fill="none" stroke="#00ff41" stroke-width="2" opacity="0.6"/>
+    <rect x="34" y="6" width="180" height="10" rx="5" fill="#00ff41" opacity="0.15"/>
+  </g>
+
+  <!-- Blinking cursor line -->
+  <g transform="translate(88, 340)">
+    <text font-family="monospace" font-weight="900" font-size="26" fill="#00ff41" filter="url(#glow-strong)">&gt;</text>
+    <rect x="28" y="-16" width="14" height="22" rx="2" fill="#00ff41" opacity="0.9" filter="url(#glow-strong)">
+      <animate attributeName="opacity" values="0.9;0;0.9" dur="1.2s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+
+  <!-- Corner glow effect top-left -->
+  <circle cx="56" cy="72" r="60" fill="#00ff41" opacity="0.04" filter="url(#glow-strong)"/>
+
+  <!-- Corner glow effect bottom-right -->
+  <circle cx="456" cy="440" r="60" fill="#00ff41" opacity="0.04" filter="url(#glow-strong)"/>
+</svg>
