@@ -153,7 +153,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Your name"
-                        className="flex-1 bg-transparent text-[13px] font-mono font-medium outline-none"
+                        className="flex-1 bg-transparent text-[16px] sm:text-[13px] font-mono font-medium outline-none"
                         style={{ color: "#e8ffe8", caretColor: "#00ff41" }}
                       />
                     </div>
@@ -173,7 +173,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@email.com"
                       required
-                      className="flex-1 bg-transparent text-[13px] font-mono font-medium outline-none"
+                      className="flex-1 bg-transparent text-[16px] sm:text-[13px] font-mono font-medium outline-none"
                       style={{ color: "#e8ffe8", caretColor: "#00ff41" }}
                     />
                   </div>
@@ -193,7 +193,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                       placeholder="••••••••"
                       required
                       minLength={6}
-                      className="flex-1 bg-transparent text-[13px] font-mono font-medium outline-none"
+                      className="flex-1 bg-transparent text-[16px] sm:text-[13px] font-mono font-medium outline-none"
                       style={{ color: "#e8ffe8", caretColor: "#00ff41" }}
                     />
                     <button

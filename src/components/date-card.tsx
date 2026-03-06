@@ -443,7 +443,7 @@ function DateCard({
                     if (!inputValue && !isToday) setInputVisible(false);
                   }}
                   placeholder="add task..."
-                  className="flex-1 bg-transparent text-[12px] sm:text-[13px] font-mono font-medium outline-none"
+                  className="flex-1 bg-transparent text-[16px] sm:text-[13px] font-mono font-medium outline-none"
                   style={{
                     color: "#00ff41",
                     caretColor: "#00ff41",
