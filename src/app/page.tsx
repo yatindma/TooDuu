@@ -359,7 +359,7 @@ export default function Home() {
           </div>
           <div className="stat-item">
             <Zap size={10} className="text-[#00ff41]" />
-            <span style={{ animation: "blink 1.5s step-end infinite" }}>{time}</span>
+            <span>{time.slice(0, 5)}<span style={{ animation: "blink 1s step-end infinite" }}>{time.slice(5)}</span></span>
           </div>
         </div>
 
