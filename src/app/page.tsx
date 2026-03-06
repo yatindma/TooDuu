@@ -135,11 +135,11 @@ export default function Home() {
     dates.push(formatDate(d));
   }
 
-  // Load todos for visible range
+  // Load todos for visible range (reload when pastDays changes OR user logs in/out)
   useEffect(() => {
     loadDateRange(formatDate(startDate), formatDate(endDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pastDaysCount]);
+  }, [pastDaysCount, user]);
 
   // Scroll to today on mount
   useEffect(() => {
