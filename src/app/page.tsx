@@ -352,7 +352,7 @@ export default function Home() {
         </div>
 
         {/* Stats bar */}
-        <div className="stats-bar hidden sm:flex" style={{ color: "rgba(0,255,65,0.7)" }}>
+        <div className="stats-bar hidden md:flex" style={{ color: "rgba(0,255,65,0.7)" }}>
           <div className="stat-item">
             <div className={`stat-dot ${totalToday === 0 ? "amber" : completedToday === totalToday && totalToday > 0 ? "" : "amber"}`} />
             <span>{completedToday}/{totalToday} tasks</span>
