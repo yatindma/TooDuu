@@ -384,17 +384,30 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex items-center gap-1">
+              {/* Mobile: single icon button */}
               <button
                 onClick={() => setAuthModal("login")}
-                className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all hover:bg-[rgba(0,255,65,0.08)] active:scale-95"
+                className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95"
+                style={{
+                  color: "#00ff41",
+                  background: "rgba(0,255,65,0.1)",
+                  border: "1px solid rgba(0,255,65,0.2)",
+                }}
+              >
+                <LogIn size={14} />
+              </button>
+              {/* Desktop: full buttons */}
+              <button
+                onClick={() => setAuthModal("login")}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all hover:bg-[rgba(0,255,65,0.08)] active:scale-95"
                 style={{ color: "#00ff41" }}
               >
                 <LogIn size={13} />
-                <span className="hidden sm:inline">LOGIN</span>
+                LOGIN
               </button>
               <button
                 onClick={() => setAuthModal("register")}
-                className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95"
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95"
                 style={{
                   color: "#00ff41",
                   background: "rgba(0,255,65,0.1)",
@@ -402,7 +415,7 @@ export default function Home() {
                 }}
               >
                 <UserPlus size={13} />
-                <span className="hidden sm:inline">SIGNUP</span>
+                SIGNUP
               </button>
             </div>
           )}
