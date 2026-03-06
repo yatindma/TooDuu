@@ -117,24 +117,28 @@ function DateCard({
   return (
     <motion.div
       ref={cardRef}
-      initial={{ opacity: 0, y: 40, scale: 0.95 }}
+      initial={{ opacity: 0, y: 30, scale: 0.97 }}
       animate={{
         opacity: 1,
-        y: active ? -16 : 0,
-        scale: active ? 1.02 : 1,
+        y: active ? (isMobile ? -8 : -16) : 0,
+        scale: active ? 1.01 : 1,
       }}
       transition={{
-        duration: 0.5,
-        delay: Math.min(index * 0.03, 0.5),
-        ease: [0.16, 1, 0.3, 1],
+        duration: 0.4,
+        delay: Math.min(index * 0.02, 0.3),
+        ease: [0.25, 1, 0.5, 1],
+        layout: { duration: 0.35, ease: [0.25, 1, 0.5, 1] },
       }}
+      layout
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="relative flex-shrink-0 flex flex-col rounded-2xl transition-all duration-500 group"
+      className="relative flex-shrink-0 flex flex-col rounded-2xl group"
       style={{
         width: cardWidth,
         minHeight: cardMinHeight,
+        willChange: "transform, opacity",
+        transition: "width 0.35s cubic-bezier(0.25, 1, 0.5, 1), min-height 0.35s cubic-bezier(0.25, 1, 0.5, 1)",
       }}
     >
       {/* === Animated glowing border for selected/today === */}

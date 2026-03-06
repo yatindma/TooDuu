@@ -231,12 +231,14 @@ export default function Home() {
 
   const handleCardSelect = (dateStr: string) => {
     setSelectedDate(dateStr);
-    scrollToDate(dateStr);
+    // Small delay to let the card resize first, then center it
+    requestAnimationFrame(() => scrollToDate(dateStr));
   };
 
   const scrollByDir = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
-    const amount = direction === "left" ? -300 : 300;
+    const isMobile = window.innerWidth < 640;
+    const amount = direction === "left" ? (isMobile ? -200 : -300) : (isMobile ? 200 : 300);
     scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
   };
 
@@ -329,12 +331,8 @@ export default function Home() {
             <span>{completedToday}/{totalToday} tasks</span>
           </div>
           <div className="stat-item">
-            <div className="stat-dot" />
-            <span style={{ animation: "blink 2s step-end infinite" }}>SYS:ONLINE</span>
-          </div>
-          <div className="stat-item">
             <Zap size={10} className="text-[#00ff41]" />
-            <span>{time}</span>
+            <span style={{ animation: "blink 1.5s step-end infinite" }}>{time}</span>
           </div>
         </div>
 
