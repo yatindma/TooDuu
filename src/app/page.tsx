@@ -367,64 +367,68 @@ export default function Home() {
 
           {/* Auth */}
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{ background: "rgba(0,255,65,0.06)" }}>
-                <User size={13} color="#00ff41" />
-                <span className="text-[10px] font-mono font-bold text-[#00ff41] max-w-[80px] truncate">
+                <User size={12} color="#00ff41" />
+                <span className="text-[10px] font-mono font-bold text-[#00ff41] max-w-[60px] sm:max-w-[80px] truncate">
                   {user.name || user.email.split("@")[0]}
                 </span>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg transition-all hover:bg-[rgba(255,68,68,0.1)] active:scale-90"
+                className="p-1.5 sm:p-2 rounded-lg transition-all hover:bg-[rgba(255,68,68,0.1)] active:scale-90"
                 title="Logout"
               >
-                <LogOut size={15} color="#ff6666" />
+                <LogOut size={14} color="#ff6666" />
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-1">
-              {/* Mobile: single icon button */}
+            <>
+              {/* Mobile: single LOGIN button with text */}
               <button
                 onClick={() => setAuthModal("login")}
-                className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95"
+                className="sm:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95"
                 style={{
                   color: "#00ff41",
-                  background: "rgba(0,255,65,0.1)",
-                  border: "1px solid rgba(0,255,65,0.2)",
+                  background: "rgba(0,255,65,0.12)",
+                  border: "1px solid rgba(0,255,65,0.3)",
+                  boxShadow: "0 0 12px rgba(0,255,65,0.08)",
                 }}
-              >
-                <LogIn size={14} />
-              </button>
-              {/* Desktop: full buttons */}
-              <button
-                onClick={() => setAuthModal("login")}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all hover:bg-[rgba(0,255,65,0.08)] active:scale-95"
-                style={{ color: "#00ff41" }}
               >
                 <LogIn size={13} />
                 LOGIN
               </button>
-              <button
-                onClick={() => setAuthModal("register")}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95"
-                style={{
-                  color: "#00ff41",
-                  background: "rgba(0,255,65,0.1)",
-                  border: "1px solid rgba(0,255,65,0.2)",
-                }}
-              >
-                <UserPlus size={13} />
-                SIGNUP
-              </button>
-            </div>
+              {/* Desktop: two buttons */}
+              <div className="hidden sm:flex items-center gap-1">
+                <button
+                  onClick={() => setAuthModal("login")}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all hover:bg-[rgba(0,255,65,0.08)] active:scale-95"
+                  style={{ color: "#00ff41" }}
+                >
+                  <LogIn size={13} />
+                  LOGIN
+                </button>
+                <button
+                  onClick={() => setAuthModal("register")}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95"
+                  style={{
+                    color: "#00ff41",
+                    background: "rgba(0,255,65,0.1)",
+                    border: "1px solid rgba(0,255,65,0.2)",
+                  }}
+                >
+                  <UserPlus size={13} />
+                  SIGNUP
+                </button>
+              </div>
+            </>
           )}
         </div>
       </motion.header>
 
       {/* ========== TIMELINE CONNECTOR LINE ========== */}
       <div
-        className="fixed left-0 right-0 z-10 pointer-events-none"
+        className="fixed left-0 right-0 z-10 pointer-events-none hidden sm:block"
         style={{ top: "50%", transform: "translateY(30px)" }}
       >
         <div
@@ -457,7 +461,7 @@ export default function Home() {
         ref={scrollRef}
         className="fixed inset-0 z-20 overflow-x-auto overflow-y-hidden flex items-center"
         style={{
-          paddingTop: "60px",
+          paddingTop: "50px",
           scrollbarWidth: "none",
           msOverflowStyle: "none",
           WebkitOverflowScrolling: "touch",
@@ -517,7 +521,7 @@ export default function Home() {
         <div className="font-mono text-[9px] sm:text-[11px] text-[#00ff41]/70 uppercase tracking-widest font-semibold hidden sm:block">
           <span style={{ animation: "blink 1.5s step-end infinite" }}>←</span> SCROLL <span style={{ animation: "blink 1.5s step-end infinite", animationDelay: "0.75s" }}>→</span>
         </div>
-        <div className="font-mono text-[10px] sm:text-[11px] text-[#00ff41] uppercase tracking-widest font-bold"
+        <div className="font-mono text-[10px] sm:text-[11px] text-[#00ff41] uppercase tracking-wider sm:tracking-widest font-bold"
           style={{ textShadow: "0 0 8px rgba(0,255,65,0.3)" }}>
           {selectedLabel}<span style={{ animation: "blink 1s step-end infinite", color: "#00ff41" }}>_</span>
         </div>
@@ -525,7 +529,7 @@ export default function Home() {
           <span className="hidden sm:inline">PAST:∞</span>
           <span className="hidden sm:inline">FUTURE:15D</span>
           <span className="hidden sm:inline">[←→] NAV</span>
-          <span className="sm:hidden">SWIPE</span>
+          <span className="sm:hidden">← SWIPE →</span>
         </div>
       </motion.footer>
 
