@@ -212,6 +212,10 @@ function useTodos() {
     [isLoggedIn]
   );
 
+  const clearTodos = useCallback(() => {
+    setTodosByDate({});
+  }, []);
+
   return {
     todosByDate,
     loadDateRange,
@@ -219,6 +223,7 @@ function useTodos() {
     addTodo,
     toggleTodo,
     deleteTodo,
+    clearTodos,
   };
 }
 

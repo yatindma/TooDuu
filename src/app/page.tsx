@@ -43,7 +43,16 @@ export default function Home() {
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const { user, logout, loading: authLoading } = useAuth();
-  const { getTodosForDate, addTodo, toggleTodo, deleteTodo, loadDateRange } = useTodos();
+  const { getTodosForDate, addTodo, toggleTodo, deleteTodo, loadDateRange, clearTodos } = useTodos();
+
+  const handleLogout = async () => {
+    await logout();
+    clearTodos();
+    // Reload from localStorage for anonymous mode
+    const start = addDays(today, -pastDaysCount);
+    const end = addDays(today, FUTURE_DAYS);
+    setTimeout(() => loadDateRange(formatDate(start), formatDate(end)), 100);
+  };
 
   // Check for local todos when user logs in - offer migration
   useEffect(() => {
@@ -368,7 +377,7 @@ export default function Home() {
                 </span>
               </div>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="p-2 rounded-lg transition-all hover:bg-[rgba(255,68,68,0.1)] active:scale-90"
                 title="Logout"
               >
