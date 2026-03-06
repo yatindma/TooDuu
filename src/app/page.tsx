@@ -394,19 +394,31 @@ export default function Home() {
 
           {/* Auth */}
           {user ? (
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{ background: "rgba(0,255,65,0.06)" }}>
+            <div className="flex items-center gap-1.5">
+              {/* Mobile: just user icon */}
+              <div className="sm:hidden flex items-center px-2 py-1.5 rounded-lg" style={{ background: "rgba(0,255,65,0.08)", border: "1px solid rgba(0,255,65,0.2)" }}>
+                <User size={14} color="#00ff41" />
+              </div>
+              {/* Desktop: name badge */}
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ background: "rgba(0,255,65,0.06)" }}>
                 <User size={12} color="#00ff41" />
-                <span className="text-[10px] font-mono font-bold text-[#00ff41] max-w-[60px] sm:max-w-[80px] truncate">
+                <span className="text-[10px] font-mono font-bold text-[#00ff41] max-w-[120px] truncate">
                   {user.name || user.email.split("@")[0]}
                 </span>
               </div>
+              {/* Logout button - always visible */}
               <button
                 onClick={handleLogout}
-                className="p-1.5 sm:p-2 rounded-lg transition-all hover:bg-[rgba(255,68,68,0.1)] active:scale-90"
-                title="Logout"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95"
+                style={{
+                  color: "#ff6666",
+                  background: "rgba(255,68,68,0.08)",
+                  border: "1px solid rgba(255,68,68,0.25)",
+                  boxShadow: "0 0 10px rgba(255,68,68,0.06)",
+                }}
               >
-                <LogOut size={14} color="#ff6666" />
+                <LogOut size={13} />
+                <span className="hidden sm:inline">LOGOUT</span>
               </button>
             </div>
           ) : (
