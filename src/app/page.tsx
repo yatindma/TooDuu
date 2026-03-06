@@ -373,7 +373,7 @@ export default function Home() {
           </button>
           <button
             onClick={scrollToToday}
-            className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-mono text-[10px] sm:text-[11px] tracking-wider transition-all hover:bg-[rgba(0,255,65,0.1)] active:scale-95"
+            className="hidden sm:block px-3 py-1.5 rounded-lg font-mono text-[11px] tracking-wider transition-all hover:bg-[rgba(0,255,65,0.1)] active:scale-95"
             style={{
               color: "#00ff41",
               border: "1px solid rgba(0,255,65,0.2)",
@@ -389,8 +389,8 @@ export default function Home() {
             <ChevronRight size={18} className="text-[#00ff41]/50" />
           </button>
 
-          {/* Divider */}
-          <div className="w-px h-4 sm:h-5 mx-0.5 sm:mx-1" style={{ background: "rgba(0,255,65,0.15)" }} />
+          {/* Divider - desktop only */}
+          <div className="hidden sm:block w-px h-5 mx-1" style={{ background: "rgba(0,255,65,0.15)" }} />
 
           {/* Auth */}
           {user ? (
@@ -495,6 +495,23 @@ export default function Home() {
         ))}
       </div>
 
+      {/* ========== MOBILE TODAY BUTTON (above cards) ========== */}
+      <div className="sm:hidden fixed top-12 left-0 right-0 z-30 flex justify-center pointer-events-none">
+        <button
+          onClick={scrollToToday}
+          className="pointer-events-auto px-4 py-1.5 rounded-full font-mono text-[10px] font-bold tracking-wider transition-all active:scale-95"
+          style={{
+            color: "#00ff41",
+            background: "rgba(10,10,15,0.85)",
+            border: "1px solid rgba(0,255,65,0.25)",
+            boxShadow: "0 0 12px rgba(0,255,65,0.08)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          TODAY
+        </button>
+      </div>
+
       {/* ========== SCROLLABLE TIMELINE ========== */}
       <div
         ref={scrollRef}
@@ -504,6 +521,7 @@ export default function Home() {
           scrollbarWidth: "none",
           msOverflowStyle: "none",
           WebkitOverflowScrolling: "touch",
+          scrollSnapType: "x proximity",
         }}
       >
         <style>{`
@@ -528,6 +546,7 @@ export default function Home() {
                 key={dateStr}
                 ref={(el) => { cardRefs.current[dateStr] = el; }}
                 className="date-card cursor-pointer"
+                style={{ scrollSnapAlign: "center" }}
                 onClick={() => handleCardSelect(dateStr)}
               >
                 <DateCard

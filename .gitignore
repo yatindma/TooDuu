@@ -46,3 +46,6 @@ data/
 *.db-shm
 *.db-wal
 image.png
+
+# private deployment docs
+DEPLOYMENT.md
