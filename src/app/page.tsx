@@ -180,7 +180,30 @@ export default function Home() {
     return () => window.removeEventListener("wheel", handleWheel);
   }, [mounted]);
 
-  // Parallax + infinite past loading on scroll
+  // Auto-select card closest to center on scroll
+  const autoSelectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const detectCenterCard = useCallback(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const centerX = container.scrollLeft + container.clientWidth / 2;
+    let closestDate = "";
+    let closestDist = Infinity;
+    for (const [dateStr, el] of Object.entries(cardRefs.current)) {
+      if (!el) continue;
+      const cardCenter = el.offsetLeft + el.clientWidth / 2;
+      const dist = Math.abs(cardCenter - centerX);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestDate = dateStr;
+      }
+    }
+    if (closestDate && closestDate !== selectedDate) {
+      setSelectedDate(closestDate);
+    }
+  }, [selectedDate]);
+
+  // Parallax + infinite past loading + auto-select on scroll
   const handleScroll = useCallback(() => {
     const container = scrollRef.current;
     if (!container) return;
@@ -205,7 +228,11 @@ export default function Home() {
     if (scrollLeft < 400) {
       setPastDaysCount((prev) => prev + LOAD_MORE_PAST_DAYS);
     }
-  }, []);
+
+    // Debounced auto-select center card
+    if (autoSelectTimerRef.current) clearTimeout(autoSelectTimerRef.current);
+    autoSelectTimerRef.current = setTimeout(detectCenterCard, 150);
+  }, [detectCenterCard]);
 
   useEffect(() => {
     const container = scrollRef.current;
