@@ -1,26 +1,364 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* ===== TERMINAL RETRO-FUTURISTIC THEME ===== */
+
+@keyframes scanline {
+  0% { top: -50%; }
+  100% { top: 100%; }
+}
+
+@keyframes blink {
+  from, to { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.4; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 65, 0.3), 0 0 10px rgba(0, 255, 65, 0.1); }
+  50% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.5), 0 0 30px rgba(0, 255, 65, 0.2); }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes grid-scroll {
+  0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+  100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+}
+
+@keyframes neon-breathe {
+  0%, 100% { text-shadow: 0 0 7px #00ff41, 0 0 10px #00ff41, 0 0 21px #00ff41; }
+  50% { text-shadow: 0 0 4px #00ff41, 0 0 7px #00ff41, 0 0 10px #00ff41; }
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --terminal-green: #00ff41;
+  --terminal-green-dim: #00cc33;
+  --terminal-green-glow: rgba(0, 255, 65, 0.15);
+  --terminal-cyan: #00d4ff;
+  --terminal-cyan-dim: #00a5c7;
+  --terminal-amber: #ffb000;
+  --terminal-red: #ff3333;
+  --terminal-bg: #0a0a0f;
+  --terminal-bg-card: #0d0d14;
+  --terminal-border: #1a1a2e;
+  --terminal-border-glow: rgba(0, 255, 65, 0.2);
+  --font-mono: "Geist Mono", "SF Mono", "Fira Code", "Cascadia Code", monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--terminal-green-dim) transparent;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--terminal-green-dim);
+  border-radius: 2px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--terminal-bg);
+  color: var(--terminal-green);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Terminal container */
+.terminal-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(0, 255, 65, 0.03) 0%, transparent 60%),
+    var(--terminal-bg);
+}
+
+/* Moving scanline - subtle sweep only, no static lines */
+.terminal-container::after {
+  content: "";
+  position: fixed;
+  top: -50%;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 255, 65, 0.02),
+    transparent
+  );
+  animation: scanline 10s linear infinite;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* Blinking cursor */
+.blinking-cursor::after {
+  content: "_";
+  animation: blink 1s step-end infinite;
+  color: var(--terminal-green);
+}
+
+/* Bento grid */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.bento-item {
+  background: var(--terminal-bg-card);
+  border: 1px solid var(--terminal-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.bento-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), transparent) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.bento-item:hover {
+  border-color: var(--terminal-border-glow);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.08), inset 0 0 20px rgba(0, 255, 65, 0.02);
+  transform: translateY(-2px);
+}
+
+/* === TIMELINE SPECIFIC STYLES === */
+
+.timeline-scroll {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  padding: 0 calc(50vw - 160px);
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.timeline-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.date-card {
+  flex-shrink: 0;
+  scroll-snap-align: center;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.date-card.is-today {
+  z-index: 10;
+}
+
+/* Todo item styling */
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(0, 255, 65, 0.06);
+  transition: all 0.2s ease;
+}
+
+.todo-item:last-child {
+  border-bottom: none;
+}
+
+.todo-item:hover {
+  background: rgba(0, 255, 65, 0.03);
+  padding-left: 0.25rem;
+}
+
+.todo-checkbox {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--terminal-green-dim);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.todo-checkbox:checked {
+  background: var(--terminal-green);
+  border-color: var(--terminal-green);
+}
+
+.todo-checkbox:checked::after {
+  content: "✓";
+  position: absolute;
+  top: -2px;
+  left: 1px;
+  font-size: 11px;
+  color: var(--terminal-bg);
+  font-weight: bold;
+}
+
+.todo-checkbox:hover {
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+.todo-text {
+  font-size: 0.8rem;
+  color: var(--terminal-green);
+  flex: 1;
+  line-height: 1.3;
+}
+
+.todo-text.completed {
+  text-decoration: line-through;
+  opacity: 0.4;
+  color: var(--terminal-green-dim);
+}
+
+.todo-delete {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+  color: var(--terminal-red);
+  font-size: 0.7rem;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.todo-item:hover .todo-delete {
+  opacity: 0.6;
+}
+
+.todo-delete:hover {
+  opacity: 1 !important;
+  background: rgba(255, 51, 51, 0.1);
+}
+
+/* Add todo input */
+.add-todo-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0, 255, 65, 0.15);
+  color: var(--terminal-green);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.4rem 0;
+  width: 100%;
+  outline: none;
+  caret-color: var(--terminal-green);
+}
+
+.add-todo-input::placeholder {
+  color: rgba(0, 255, 65, 0.2);
+}
+
+.add-todo-input:focus {
+  border-bottom-color: var(--terminal-green);
+}
+
+/* Perspective grid background */
+.grid-bg {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40vh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+.grid-bg-inner {
+  width: 200%;
+  height: 200%;
+  margin-left: -50%;
+  background-image:
+    linear-gradient(rgba(0, 255, 65, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 65, 0.07) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: grid-scroll 4s linear infinite;
+}
+
+/* Stats bar at top */
+.stats-bar {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.7rem;
+  color: var(--terminal-green-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.stat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--terminal-green);
+  box-shadow: 0 0 6px var(--terminal-green);
+}
+
+.stat-dot.amber {
+  background: var(--terminal-amber);
+  box-shadow: 0 0 6px var(--terminal-amber);
+}
+
+.stat-dot.red {
+  background: var(--terminal-red);
+  box-shadow: 0 0 6px var(--terminal-red);
 }

@@ -1,0 +1,28 @@
+services:
+  tooduu:
+    build: .
+    container_name: tooduu
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - AUTH_SECRET=tooduu-prod-secret-k8x2m9p4
+    volumes:
+      - tooduu-data:/app/data
+    networks:
+      - traefik-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tooduu.rule=Host(`tooduu.srv1302879.hstgr.cloud`)"
+      - "traefik.http.routers.tooduu.entrypoints=websecure"
+      - "traefik.http.routers.tooduu.tls=true"
+      - "traefik.http.routers.tooduu.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tooduu-http.rule=Host(`tooduu.srv1302879.hstgr.cloud`)"
+      - "traefik.http.routers.tooduu-http.entrypoints=web"
+      - "traefik.http.services.tooduu.loadbalancer.server.port=3000"
+
+volumes:
+  tooduu-data:
+
+networks:
+  traefik-proxy:
+    external: true
