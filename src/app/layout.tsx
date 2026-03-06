@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     icon: "/icon.svg",
     apple: "/icon.svg",
   },
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, interactive-widget=resizes-content",
 };
 
 export default function RootLayout({

@@ -82,7 +82,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-[90vw] max-w-[400px]"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-[94vw] sm:w-[90vw] max-w-[400px]"
           >
             <div
               className="relative rounded-2xl overflow-hidden"

@@ -79,8 +79,10 @@ function DateCard({
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
-  const cardWidth = isSelected ? 300 : 230;
-  const cardMinHeight = isSelected ? 360 : 260;
+  // Responsive sizes
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+  const cardWidth = isSelected ? (isMobile ? 260 : 300) : (isMobile ? 180 : 230);
+  const cardMinHeight = isSelected ? (isMobile ? 300 : 360) : (isMobile ? 220 : 260);
   const active = isSelected;
 
   // Color scheme - HIGH READABILITY
@@ -222,7 +224,7 @@ function DateCard({
       <div className="relative z-10 flex flex-col h-full">
         {/* Header */}
         <div
-          className="flex flex-col items-center gap-1 px-4 pt-4 pb-3"
+          className="flex flex-col items-center gap-0.5 sm:gap-1 px-3 sm:px-4 pt-3 sm:pt-4 pb-2 sm:pb-3"
           style={{ borderBottom: `1px solid ${colors.headerBorder}` }}
         >
           {/* Day name */}
@@ -247,7 +249,7 @@ function DateCard({
               />
             )}
             <span
-              className="text-6xl font-mono font-black leading-none tracking-tight"
+              className="text-5xl sm:text-6xl font-mono font-black leading-none tracking-tight"
               style={{
                 ...(active
                   ? {
@@ -329,7 +331,7 @@ function DateCard({
           data-todo-list
           className="flex-1 px-3 py-2 overflow-y-auto"
           style={{
-            maxHeight: active ? 190 : 130,
+            maxHeight: active ? (isMobile ? 150 : 190) : (isMobile ? 100 : 130),
             scrollbarWidth: "thin",
             scrollbarColor: "rgba(0,255,65,0.2) transparent",
           }}
@@ -371,7 +373,7 @@ function DateCard({
 
                 {/* Todo text - MAX VISIBILITY */}
                 <span
-                  className="flex-1 text-[13px] font-mono font-medium leading-relaxed break-words transition-all duration-300"
+                  className="flex-1 text-[12px] sm:text-[13px] font-mono font-medium leading-relaxed break-words transition-all duration-300"
                   style={{
                     color: todo.completed ? colors.todoCompleted : colors.todoText,
                     textDecoration: todo.completed ? "line-through" : "none",
@@ -429,11 +431,15 @@ function DateCard({
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  onFocus={() => {
+                    // On mobile, scroll input into view when keyboard opens
+                    setTimeout(() => inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
+                  }}
                   onBlur={() => {
                     if (!inputValue && !isToday) setInputVisible(false);
                   }}
                   placeholder="add task..."
-                  className="flex-1 bg-transparent text-[13px] font-mono font-medium outline-none"
+                  className="flex-1 bg-transparent text-[12px] sm:text-[13px] font-mono font-medium outline-none"
                   style={{
                     color: "#00ff41",
                     caretColor: "#00ff41",
