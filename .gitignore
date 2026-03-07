@@ -47,5 +47,6 @@ data/
 *.db-wal
 image.png
 
-# private deployment docs
+# private docs
+CLAUDE.md
 DEPLOYMENT.md
