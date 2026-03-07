@@ -45,8 +45,12 @@ export default function Home() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  // Momentum scrolling
+  const velocityRef = useRef(0);
+  const isAnimatingRef = useRef(false);
+
   const { user, logout, loading: authLoading } = useAuth();
-  const { getTodosForDate, addTodo, toggleTodo, deleteTodo, loadDateRange, clearTodos } = useTodos();
+  const { getTodosForDate, addTodo, toggleTodo, deleteTodo, moveTodo, editTodo, loadDateRange, clearTodos } = useTodos();
 
   const handleLogout = async () => {
     await logout();
@@ -154,8 +158,23 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Mouse wheel (up/down) → horizontal scroll, BUT if hovering over
-  // a scrollable todo list inside a card, let it scroll vertically
+  // Momentum scroll animation loop
+  const animateScroll = useCallback(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    container.scrollLeft += velocityRef.current;
+    velocityRef.current *= 0.92; // smooth friction decay
+
+    if (Math.abs(velocityRef.current) > 0.3) {
+      requestAnimationFrame(animateScroll);
+    } else {
+      velocityRef.current = 0;
+      isAnimatingRef.current = false;
+    }
+  }, []);
+
+  // Mouse wheel (up/down) → horizontal momentum scroll
   useEffect(() => {
     if (!mounted) return;
     const container = scrollRef.current;
@@ -168,20 +187,26 @@ export default function Home() {
         const { scrollTop, scrollHeight, clientHeight } = scrollableParent;
         const atTop = scrollTop <= 0 && e.deltaY < 0;
         const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0;
-        // If the list can still scroll in the wheel direction, let it scroll vertically
         if (!atTop && !atBottom) {
-          // Don't prevent default - let the list scroll naturally
           e.stopPropagation();
           return;
         }
       }
       e.preventDefault();
       const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-      container.scrollLeft += delta * 2;
+
+      // Add to velocity with smooth acceleration (capped)
+      velocityRef.current += delta * 0.4;
+      velocityRef.current = Math.max(-80, Math.min(80, velocityRef.current));
+
+      if (!isAnimatingRef.current) {
+        isAnimatingRef.current = true;
+        requestAnimationFrame(animateScroll);
+      }
     };
     window.addEventListener("wheel", handleWheel, { passive: false });
     return () => window.removeEventListener("wheel", handleWheel);
-  }, [mounted]);
+  }, [mounted, animateScroll]);
 
   // Auto-select card closest to center on scroll
   const autoSelectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -314,10 +339,15 @@ export default function Home() {
   const completedToday = todayTodos.filter((t) => t.completed).length;
   const totalToday = todayTodos.length;
 
-  // Selected date info for bottom bar
+  // Selected date info for bottom bar - relative labels for next 7 days
   const selectedDateObj = new Date(selectedDate + "T00:00:00");
+  const dayDiff = Math.round((selectedDateObj.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   const selectedLabel = selectedDate === todayStr
     ? "TODAY"
+    : dayDiff > 0 && dayDiff <= 7
+    ? `TODAY +${dayDiff}`
+    : dayDiff < 0 && dayDiff >= -7
+    ? `TODAY ${dayDiff}`
     : selectedDateObj.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
 
   if (!mounted) return null;
@@ -518,7 +548,7 @@ export default function Home() {
       {/* ========== SCROLLABLE TIMELINE ========== */}
       <div
         ref={scrollRef}
-        className="fixed inset-0 z-20 overflow-x-auto overflow-y-hidden flex items-center"
+        className="fixed inset-0 z-20 overflow-x-auto overflow-y-hidden flex items-center momentum-scroll"
         style={{
           paddingTop: "50px",
           scrollbarWidth: "none",
@@ -562,6 +592,8 @@ export default function Home() {
                   onAddTodo={addTodo}
                   onToggleTodo={toggleTodo}
                   onDeleteTodo={deleteTodo}
+                  onMoveTodo={moveTodo}
+                  onEditTodo={editTodo}
                 />
               </div>
             );

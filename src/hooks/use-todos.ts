@@ -213,6 +213,96 @@ function useTodos() {
     [isLoggedIn]
   );
 
+  const moveTodo = useCallback(
+    async (sourceDate: string, todoId: string, targetDate: string) => {
+      if (isLoggedIn) {
+        // Optimistic update
+        let movedTodo: Todo | undefined;
+        setTodosByDate((prev) => {
+          const sourceList = prev[sourceDate] ?? [];
+          movedTodo = sourceList.find((t) => t.id === todoId);
+          if (!movedTodo) return prev;
+          const updatedSource = sourceList.filter((t) => t.id !== todoId);
+          const updatedTarget = [...(prev[targetDate] ?? []), movedTodo];
+          return { ...prev, [sourceDate]: updatedSource, [targetDate]: updatedTarget };
+        });
+        try {
+          await fetch("/api/todos", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: todoId, newDate: targetDate }),
+          });
+        } catch {
+          // Revert on failure
+          setTodosByDate((prev) => {
+            if (!movedTodo) return prev;
+            const revertedTarget = (prev[targetDate] ?? []).filter((t) => t.id !== todoId);
+            const revertedSource = [...(prev[sourceDate] ?? []), movedTodo];
+            return { ...prev, [sourceDate]: revertedSource, [targetDate]: revertedTarget };
+          });
+        }
+      } else {
+        setTodosByDate((prev) => {
+          const sourceList = prev[sourceDate] ?? readLocal(sourceDate);
+          const movedTodo = sourceList.find((t) => t.id === todoId);
+          if (!movedTodo) return prev;
+          const updatedSource = sourceList.filter((t) => t.id !== todoId);
+          const targetList = prev[targetDate] ?? readLocal(targetDate);
+          const updatedTarget = [...targetList, movedTodo];
+          writeLocal(sourceDate, updatedSource);
+          writeLocal(targetDate, updatedTarget);
+          return { ...prev, [sourceDate]: updatedSource, [targetDate]: updatedTarget };
+        });
+      }
+    },
+    [isLoggedIn]
+  );
+
+  const editTodo = useCallback(
+    async (date: string, todoId: string, newText: string) => {
+      if (isLoggedIn) {
+        // Optimistic update
+        let oldText: string | undefined;
+        setTodosByDate((prev) => {
+          const list = prev[date] ?? [];
+          const todo = list.find((t) => t.id === todoId);
+          if (todo) oldText = todo.text;
+          const updated = list.map((t) =>
+            t.id === todoId ? { ...t, text: newText } : t
+          );
+          return { ...prev, [date]: updated };
+        });
+        try {
+          await fetch("/api/todos", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: todoId, newText }),
+          });
+        } catch {
+          // Revert on failure
+          if (oldText !== undefined) {
+            setTodosByDate((prev) => {
+              const reverted = (prev[date] ?? []).map((t) =>
+                t.id === todoId ? { ...t, text: oldText as string } : t
+              );
+              return { ...prev, [date]: reverted };
+            });
+          }
+        }
+      } else {
+        setTodosByDate((prev) => {
+          const existing = prev[date] ?? readLocal(date);
+          const updated = existing.map((t) =>
+            t.id === todoId ? { ...t, text: newText } : t
+          );
+          writeLocal(date, updated);
+          return { ...prev, [date]: updated };
+        });
+      }
+    },
+    [isLoggedIn]
+  );
+
   const clearTodos = useCallback(() => {
     setTodosByDate({});
   }, []);
@@ -224,6 +314,8 @@ function useTodos() {
     addTodo,
     toggleTodo,
     deleteTodo,
+    moveTodo,
+    editTodo,
     clearTodos,
   };
 }

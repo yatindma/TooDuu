@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, KeyboardEvent } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import { Plus, X, Check, Calendar, Sparkles } from "lucide-react";
+import { Plus, X, Check, Calendar, Sparkles, Pencil } from "lucide-react";
 import type { Todo } from "@/lib/types";
 
 interface DateCardProps {
@@ -15,6 +15,8 @@ interface DateCardProps {
   onAddTodo: (date: string, text: string) => void;
   onToggleTodo: (date: string, id: string) => void;
   onDeleteTodo: (date: string, id: string) => void;
+  onMoveTodo?: (sourceDate: string, todoId: string, targetDate: string) => void;
+  onEditTodo?: (date: string, todoId: string, newText: string) => void;
 }
 
 function DateCard({
@@ -27,12 +29,19 @@ function DateCard({
   onAddTodo,
   onToggleTodo,
   onDeleteTodo,
+  onMoveTodo,
+  onEditTodo,
 }: DateCardProps) {
   const [inputVisible, setInputVisible] = useState(isToday);
   const [inputValue, setInputValue] = useState("");
   const [isHovered, setIsHovered] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const dragCounterRef = useRef(0);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -79,13 +88,82 @@ function DateCard({
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
-  // Responsive sizes
+  // Edit handlers
+  const startEdit = (todo: Todo) => {
+    setEditingTodoId(todo.id);
+    setEditText(todo.text);
+    setTimeout(() => editInputRef.current?.focus(), 50);
+  };
+
+  const commitEdit = () => {
+    if (editingTodoId && editText.trim() && onEditTodo) {
+      onEditTodo(date, editingTodoId, editText.trim());
+    }
+    setEditingTodoId(null);
+    setEditText("");
+  };
+
+  const handleEditKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") commitEdit();
+    if (e.key === "Escape") {
+      setEditingTodoId(null);
+      setEditText("");
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, todo: Todo) => {
+    e.dataTransfer.setData("application/json", JSON.stringify({
+      todoId: todo.id,
+      sourceDate: date,
+      text: todo.text,
+      completed: todo.completed,
+    }));
+    e.dataTransfer.effectAllowed = "move";
+    // Style the drag ghost
+    const target = e.currentTarget as HTMLElement;
+    target.style.opacity = "0.4";
+    setTimeout(() => { target.style.opacity = "1"; }, 0);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounterRef.current++;
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounterRef.current = 0;
+    setIsDragOver(false);
+
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
+      if (data.sourceDate !== date && onMoveTodo) {
+        onMoveTodo(data.sourceDate, data.todoId, date);
+      }
+    } catch { /* ignore invalid drops */ }
+  };
+
+  // Responsive sizes - BIGGER selected cards
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-  const cardWidth = isSelected ? (isMobile ? 260 : 300) : (isMobile ? 180 : 230);
-  const cardMinHeight = isSelected ? (isMobile ? 300 : 360) : (isMobile ? 220 : 260);
+  const cardWidth = isSelected ? (isMobile ? 280 : 340) : (isMobile ? 170 : 220);
+  const cardMinHeight = isSelected ? (isMobile ? 300 : 380) : (isMobile ? 200 : 240);
   const active = isSelected;
 
-  // Color scheme - HIGH READABILITY
+  // Color scheme
   const colors = {
     dayName: isPast ? "#6abf7b" : active ? "#00ff41" : "#8fe0a0",
     dateNum: isPast ? "#5cb870" : "#00ff41",
@@ -96,6 +174,8 @@ function DateCard({
     emptyIcon: isPast ? "#5aaa70" : "#6abf7b",
     emptyText: isPast ? "#5aaa70" : "#6abf7b",
     border: active
+      ? "rgba(0,255,65,0.5)"
+      : isDragOver
       ? "rgba(0,255,65,0.5)"
       : isHovered
       ? "rgba(0,255,65,0.3)"
@@ -120,31 +200,34 @@ function DateCard({
       initial={{ opacity: 0, y: 30, scale: 0.97 }}
       animate={{
         opacity: 1,
-        y: active ? (isMobile ? -8 : -16) : 0,
-        scale: active ? 1.01 : 1,
+        y: active ? (isMobile ? -12 : -24) : 0,
+        scale: active ? 1.03 : 1,
       }}
       transition={{
-        duration: 0.4,
+        duration: 0.5,
         delay: Math.min(index * 0.02, 0.3),
-        ease: [0.25, 1, 0.5, 1],
-        layout: { duration: 0.35, ease: [0.25, 1, 0.5, 1] },
+        ease: [0.22, 1, 0.36, 1],
+        layout: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
       }}
       layout
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       className="relative flex-shrink-0 flex flex-col rounded-2xl group"
       style={{
         width: cardWidth,
         minHeight: cardMinHeight,
-        willChange: "transform, opacity",
-        transition: "width 0.35s cubic-bezier(0.25, 1, 0.5, 1), min-height 0.35s cubic-bezier(0.25, 1, 0.5, 1)",
+        willChange: "transform, opacity, width",
+        transition: "width 0.4s cubic-bezier(0.22, 1, 0.36, 1), min-height 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
       }}
     >
       {/* === Animated glowing border for selected/today === */}
       {active && (
         <>
-          {/* Outer glow aura */}
           <div
             className="absolute -inset-[2px] rounded-2xl pointer-events-none"
             style={{
@@ -154,7 +237,6 @@ function DateCard({
               animation: "pulse-glow 3s ease-in-out infinite",
             }}
           />
-          {/* Animated border gradient */}
           <div
             className="absolute -inset-[1px] rounded-2xl pointer-events-none overflow-hidden"
             style={{
@@ -173,6 +255,18 @@ function DateCard({
         </>
       )}
 
+      {/* === Drag over highlight === */}
+      {isDragOver && !active && (
+        <div
+          className="absolute -inset-[1px] rounded-2xl pointer-events-none"
+          style={{
+            border: "2px dashed rgba(0,255,65,0.5)",
+            background: "rgba(0,255,65,0.05)",
+            animation: "pulse-glow 1.5s ease-in-out infinite",
+          }}
+        />
+      )}
+
       {/* === Mouse-following radial glow === */}
       <motion.div
         className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -187,7 +281,7 @@ function DateCard({
       />
 
       {/* === Card border (non-selected) === */}
-      {!active && (
+      {!active && !isDragOver && (
         <div
           className="absolute inset-0 rounded-2xl transition-all duration-400"
           style={{
@@ -202,10 +296,10 @@ function DateCard({
       {/* === Top glow aura for active cards === */}
       {active && (
         <div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[250%] h-28 pointer-events-none"
+          className="absolute -top-12 left-1/2 -translate-x-1/2 w-[280%] h-32 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse at center, rgba(0,255,65,0.12) 0%, transparent 65%)",
-            filter: "blur(25px)",
+            background: "radial-gradient(ellipse at center, rgba(0,255,65,0.15) 0%, transparent 65%)",
+            filter: "blur(30px)",
             mixBlendMode: "screen",
             zIndex: 0,
           }}
@@ -216,7 +310,9 @@ function DateCard({
       <div
         className="absolute inset-[1px] rounded-2xl overflow-hidden"
         style={{
-          background: active
+          background: isDragOver
+            ? "linear-gradient(180deg, rgba(0,255,65,0.08) 0%, #0a0e10 30%, #0a0c0f 100%)"
+            : active
             ? "linear-gradient(180deg, rgba(0,255,65,0.05) 0%, #0a0e10 20%, #0a0c0f 100%)"
             : isPast
             ? "#090b0e"
@@ -226,118 +322,109 @@ function DateCard({
 
       {/* === CONTENT === */}
       <div className="relative z-10 flex flex-col h-full">
-        {/* Header */}
+        {/* Header - Compact */}
         <div
-          className="flex flex-col items-center gap-0.5 sm:gap-1 px-3 sm:px-4 pt-3 sm:pt-4 pb-2 sm:pb-3"
+          className="flex items-center justify-between px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2"
           style={{ borderBottom: `1px solid ${colors.headerBorder}` }}
         >
-          {/* Day name */}
-          <span
-            className="text-[11px] font-mono tracking-[0.25em] font-bold uppercase transition-colors duration-300"
-            style={{ color: colors.dayName }}
-          >
-            {dayName}
-          </span>
-
-          {/* Date number */}
+          {/* Left: Date info compact */}
           <div className="flex items-center gap-2">
             {isToday && (
               <motion.span
-                className="inline-block w-2.5 h-2.5 rounded-full"
+                className="inline-block w-2 h-2 rounded-full flex-shrink-0"
                 style={{
                   backgroundColor: "#00ff41",
-                  boxShadow: "0 0 8px #00ff41, 0 0 20px rgba(0,255,65,0.4)",
+                  boxShadow: "0 0 6px #00ff41, 0 0 14px rgba(0,255,65,0.4)",
                 }}
                 animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               />
             )}
             <span
-              className="text-5xl sm:text-6xl font-mono font-black leading-none tracking-tight"
+              className={`font-mono font-black leading-none tracking-tight ${active ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl"}`}
               style={{
                 ...(active
                   ? {
                       background: "linear-gradient(180deg, #00ff41 0%, #00dd38 60%, #00aa2a 100%)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
-                      filter: "drop-shadow(0 0 15px rgba(0,255,65,0.5))",
+                      filter: "drop-shadow(0 0 12px rgba(0,255,65,0.5))",
                     }
                   : {
                       color: colors.dateNum,
                       textShadow: isHovered ? "0 0 10px rgba(0,255,65,0.3)" : "none",
                     }),
+                transition: "font-size 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
               }}
             >
               {dateNumber}
             </span>
-          </div>
-
-          {/* Month + Year */}
-          <div className="flex items-center gap-2">
-            <span
-              className="text-[12px] font-mono font-bold uppercase tracking-[0.2em] transition-colors duration-300"
-              style={{ color: colors.month }}
-            >
-              {monthName}
-            </span>
-            <span className="text-[10px] font-mono font-bold" style={{ color: colors.year }}>
-              {yearStr}
-            </span>
-          </div>
-
-          {/* TODAY badge */}
-          {isToday && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
-              className="mt-1.5 flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-mono font-bold tracking-[0.3em] uppercase"
-              style={{
-                background: "linear-gradient(135deg, rgba(0,255,65,0.18) 0%, rgba(0,255,65,0.06) 100%)",
-                color: "#00ff41",
-                border: "1px solid rgba(0,255,65,0.3)",
-                boxShadow: "0 0 15px rgba(0,255,65,0.12), inset 0 0 8px rgba(0,255,65,0.05)",
-              }}
-            >
-              <Sparkles size={9} />
-              TODAY
-            </motion.div>
-          )}
-
-          {/* Progress bar */}
-          {totalCount > 0 && (
-            <div className="w-full mt-2.5 flex items-center gap-2">
-              <div className="flex-1 h-[3px] rounded-full overflow-hidden" style={{ background: colors.progressTrack }}>
-                <motion.div
-                  className="h-full rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress * 100}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  style={{
-                    background: progress === 1
-                      ? "linear-gradient(90deg, #00ff41, #00dd38)"
-                      : "linear-gradient(90deg, #00ff41, #00aa2a)",
-                    boxShadow: progress === 1
-                      ? "0 0 10px rgba(0,255,65,0.5)"
-                      : "0 0 4px rgba(0,255,65,0.2)",
-                  }}
-                />
-              </div>
-              <span className="text-[10px] font-mono font-bold" style={{ color: colors.progressCount }}>
-                {completedCount}/{totalCount}
+            <div className="flex flex-col">
+              <span className="text-[10px] font-mono font-bold tracking-[0.15em] uppercase" style={{ color: colors.dayName }}>
+                {dayName}
+              </span>
+              <span className="text-[9px] font-mono font-bold uppercase tracking-wider" style={{ color: colors.month }}>
+                {monthName} <span style={{ color: colors.year }}>{yearStr}</span>
               </span>
             </div>
-          )}
+          </div>
+
+          {/* Right: Today badge or progress */}
+          <div className="flex items-center gap-2">
+            {isToday && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
+                className="px-2 py-0.5 rounded-full text-[8px] font-mono font-bold tracking-[0.2em] uppercase"
+                style={{
+                  background: "rgba(0,255,65,0.12)",
+                  color: "#00ff41",
+                  border: "1px solid rgba(0,255,65,0.25)",
+                }}
+              >
+                TODAY
+              </motion.span>
+            )}
+            {totalCount > 0 && (
+              <span className="text-[9px] font-mono font-bold" style={{ color: colors.progressCount }}>
+                {completedCount}/{totalCount}
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Progress bar - thin, below header */}
+        {totalCount > 0 && (
+          <div className="px-3 sm:px-4 pt-1.5">
+            <div className="h-[2px] rounded-full overflow-hidden" style={{ background: colors.progressTrack }}>
+              <motion.div
+                className="h-full rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress * 100}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                style={{
+                  background: progress === 1
+                    ? "linear-gradient(90deg, #00ff41, #00dd38)"
+                    : "linear-gradient(90deg, #00ff41, #00aa2a)",
+                  boxShadow: progress === 1
+                    ? "0 0 8px rgba(0,255,65,0.4)"
+                    : "0 0 3px rgba(0,255,65,0.15)",
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Body - Todo list */}
         <div
           data-todo-list
           className="flex-1 px-3 py-2 overflow-y-auto"
           style={{
-            maxHeight: active ? (isMobile ? 150 : 190) : (isMobile ? 100 : 130),
+            maxHeight: active ? (isMobile ? 220 : 300) : (isMobile ? 110 : 150),
             scrollbarWidth: "thin",
             scrollbarColor: "rgba(0,255,65,0.2) transparent",
+            transition: "max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         >
           <AnimatePresence initial={false}>
@@ -348,8 +435,13 @@ function DateCard({
                 animate={{ opacity: 1, x: 0, height: "auto" }}
                 exit={{ opacity: 0, x: 12, height: 0 }}
                 transition={{ duration: 0.25, delay: i * 0.02 }}
+                draggable
+                onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, todo)}
                 className="group/todo flex items-start gap-2.5 py-2 last:border-0"
-                style={{ borderBottom: `1px solid ${colors.todoBorder}` }}
+                style={{
+                  borderBottom: `1px solid ${colors.todoBorder}`,
+                  cursor: "grab",
+                }}
               >
                 {/* Checkbox */}
                 <button
@@ -375,32 +467,56 @@ function DateCard({
                   </AnimatePresence>
                 </button>
 
-                {/* Todo text - MAX VISIBILITY */}
-                <span
-                  className="flex-1 text-[12px] sm:text-[13px] font-mono font-medium leading-relaxed break-words transition-all duration-300"
-                  style={{
-                    color: todo.completed ? colors.todoCompleted : colors.todoText,
-                    textDecoration: todo.completed ? "line-through" : "none",
-                    textDecorationColor: todo.completed ? "rgba(0,255,65,0.4)" : undefined,
-                    opacity: todo.completed ? 0.7 : 1,
-                    letterSpacing: "0.02em",
-                  }}
-                >
-                  {todo.text}
-                </span>
+                {/* Todo text or edit input */}
+                {editingTodoId === todo.id ? (
+                  <input
+                    ref={editInputRef}
+                    type="text"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onKeyDown={handleEditKeyDown}
+                    onBlur={commitEdit}
+                    className="todo-edit-input flex-1"
+                    autoFocus
+                  />
+                ) : (
+                  <span
+                    className="flex-1 text-[12px] sm:text-[13px] font-mono font-medium leading-relaxed break-words transition-all duration-300"
+                    style={{
+                      color: todo.completed ? colors.todoCompleted : colors.todoText,
+                      textDecoration: todo.completed ? "line-through" : "none",
+                      textDecorationColor: todo.completed ? "rgba(0,255,65,0.4)" : undefined,
+                      opacity: todo.completed ? 0.7 : 1,
+                      letterSpacing: "0.02em",
+                    }}
+                    onDoubleClick={(e) => { e.stopPropagation(); startEdit(todo); }}
+                  >
+                    {todo.text}
+                  </span>
+                )}
 
-                {/* Delete button */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDeleteTodo(date, todo.id); }}
-                  className="flex-shrink-0 mt-[2px] opacity-50 hover:opacity-100 transition-all duration-200 p-1 rounded-md hover:bg-[rgba(255,68,68,0.15)] active:scale-90"
-                >
-                  <X size={12} color="#ff6666" />
-                </button>
+                {/* Edit + Delete buttons */}
+                <div className="flex-shrink-0 flex items-center gap-0.5 mt-[2px]">
+                  {editingTodoId !== todo.id && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); startEdit(todo); }}
+                      className="opacity-0 group-hover/todo:opacity-50 hover:!opacity-100 transition-all duration-200 p-1 rounded-md hover:bg-[rgba(0,255,65,0.12)] active:scale-90"
+                    >
+                      <Pencil size={11} color="#00ff41" />
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDeleteTodo(date, todo.id); }}
+                    className="flex-shrink-0 opacity-0 group-hover/todo:opacity-50 hover:!opacity-100 transition-all duration-200 p-1 rounded-md hover:bg-[rgba(255,68,68,0.15)] active:scale-90"
+                  >
+                    <X size={12} color="#ff6666" />
+                  </button>
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
 
-          {todos.length === 0 && (
+          {todos.length === 0 && !isDragOver && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -410,6 +526,18 @@ function DateCard({
               <Calendar size={20} style={{ color: colors.emptyIcon }} />
               <span className="text-[11px] font-mono font-bold mt-2 tracking-widest uppercase" style={{ color: colors.emptyText }}>
                 {isPast ? "NO TASKS" : "EMPTY QUEUE"}<span style={{ animation: "blink 1s step-end infinite" }}>_</span>
+              </span>
+            </motion.div>
+          )}
+
+          {isDragOver && todos.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center h-full py-8"
+            >
+              <span className="text-[11px] font-mono font-bold tracking-widest uppercase" style={{ color: "#00ff41" }}>
+                DROP HERE
               </span>
             </motion.div>
           )}
@@ -426,7 +554,7 @@ function DateCard({
                 exit={{ opacity: 0, height: 0 }}
                 className="flex items-center gap-2"
               >
-                <span className="text-[13px] font-mono font-black" style={{ color: colors.prompt, animation: "neon-breathe 2s ease-in-out infinite" }}>
+                <span className="text-[13px] font-mono font-black" style={{ color: colors.prompt, animation: "blink 1s step-end infinite" }}>
                   {">"}
                 </span>
                 <input
@@ -436,7 +564,6 @@ function DateCard({
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyDown}
                   onFocus={() => {
-                    // On mobile, scroll input into view when keyboard opens
                     setTimeout(() => inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
                   }}
                   onBlur={() => {

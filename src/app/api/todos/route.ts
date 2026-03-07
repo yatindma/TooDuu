@@ -66,16 +66,25 @@ export async function POST(req: Request) {
   });
 }
 
-// PATCH /api/todos - toggle
+// PATCH /api/todos - toggle or move
 export async function PATCH(req: Request) {
   const auth = await getUserFromCookie();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id } = await req.json();
+  const { id, newDate, newText } = await req.json();
   const existing = db.prepare("SELECT completed FROM todos WHERE id = ? AND user_id = ?").get(id, auth.userId) as { completed: number } | undefined;
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  db.prepare("UPDATE todos SET completed = ? WHERE id = ?").run(existing.completed ? 0 : 1, id);
+  if (newDate) {
+    // Move todo to a different date
+    db.prepare("UPDATE todos SET date = ? WHERE id = ? AND user_id = ?").run(newDate, id, auth.userId);
+  } else if (newText) {
+    // Edit todo text
+    db.prepare("UPDATE todos SET text = ? WHERE id = ? AND user_id = ?").run(newText, id, auth.userId);
+  } else {
+    // Toggle completed
+    db.prepare("UPDATE todos SET completed = ? WHERE id = ?").run(existing.completed ? 0 : 1, id);
+  }
 
   return NextResponse.json({ ok: true });
 }
