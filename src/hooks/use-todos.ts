@@ -56,7 +56,8 @@ function useTodos() {
             const start = new Date(startDate);
             const end = new Date(endDate);
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-              grouped[d.toISOString().slice(0, 10)] = [];
+              const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+              grouped[key] = [];
             }
             // Group todos by date
             for (const todo of data.todos) {
@@ -86,7 +87,7 @@ function useTodos() {
     const end = new Date(endDate);
     const loaded: Record<string, Todo[]> = {};
     for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().slice(0, 10);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       loaded[dateStr] = readLocal(dateStr);
     }
     setTodosByDate((prev) => ({ ...prev, ...loaded }));
