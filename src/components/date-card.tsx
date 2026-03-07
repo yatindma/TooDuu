@@ -159,8 +159,8 @@ function DateCard({
 
   // Responsive sizes - BIGGER selected cards
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-  const cardWidth = isSelected ? (isMobile ? 280 : 340) : (isMobile ? 170 : 220);
-  const cardMinHeight = isSelected ? (isMobile ? 300 : 380) : (isMobile ? 200 : 240);
+  const cardWidth = isSelected ? (isMobile ? 300 : 380) : (isMobile ? 165 : 210);
+  const cardMinHeight = isSelected ? (isMobile ? 340 : 440) : (isMobile ? 190 : 230);
   const active = isSelected;
 
   // Color scheme
@@ -200,16 +200,14 @@ function DateCard({
       initial={{ opacity: 0, y: 30, scale: 0.97 }}
       animate={{
         opacity: 1,
-        y: active ? (isMobile ? -12 : -24) : 0,
-        scale: active ? 1.03 : 1,
+        y: active ? (isMobile ? -16 : -30) : 0,
+        scale: active ? 1.05 : 1,
       }}
       transition={{
         duration: 0.5,
         delay: Math.min(index * 0.02, 0.3),
         ease: [0.22, 1, 0.36, 1],
-        layout: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
       }}
-      layout
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -231,16 +229,16 @@ function DateCard({
           <div
             className="absolute -inset-[2px] rounded-2xl pointer-events-none"
             style={{
-              background: "linear-gradient(135deg, rgba(0,255,65,0.3), rgba(0,212,255,0.1), rgba(0,255,65,0.3))",
-              filter: "blur(4px)",
-              opacity: 0.6,
+              background: "linear-gradient(135deg, rgba(0,255,65,0.2), rgba(0,212,255,0.05), rgba(0,255,65,0.2))",
+              filter: "blur(3px)",
+              opacity: 0.5,
               animation: "pulse-glow 3s ease-in-out infinite",
             }}
           />
           <div
             className="absolute -inset-[1px] rounded-2xl pointer-events-none overflow-hidden"
             style={{
-              background: "linear-gradient(var(--glow-angle, 0deg), #00ff41, rgba(0,212,255,0.6), #00ff41, rgba(0,255,65,0.3))",
+              background: "linear-gradient(var(--glow-angle, 0deg), rgba(0,255,65,0.7), rgba(0,212,255,0.3), rgba(0,255,65,0.7), rgba(0,255,65,0.2))",
               backgroundSize: "300% 300%",
               animation: "border-rotate 4s linear infinite",
             }}
@@ -293,13 +291,13 @@ function DateCard({
         />
       )}
 
-      {/* === Top glow aura for active cards === */}
+      {/* === Top glow aura for active cards — subtle === */}
       {active && (
         <div
-          className="absolute -top-12 left-1/2 -translate-x-1/2 w-[280%] h-32 pointer-events-none"
+          className="absolute -top-8 left-1/2 -translate-x-1/2 w-[200%] h-20 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse at center, rgba(0,255,65,0.15) 0%, transparent 65%)",
-            filter: "blur(30px)",
+            background: "radial-gradient(ellipse at center, rgba(0,255,65,0.08) 0%, transparent 70%)",
+            filter: "blur(20px)",
             mixBlendMode: "screen",
             zIndex: 0,
           }}
@@ -313,7 +311,7 @@ function DateCard({
           background: isDragOver
             ? "linear-gradient(180deg, rgba(0,255,65,0.08) 0%, #0a0e10 30%, #0a0c0f 100%)"
             : active
-            ? "linear-gradient(180deg, rgba(0,255,65,0.05) 0%, #0a0e10 20%, #0a0c0f 100%)"
+            ? "linear-gradient(180deg, #0b0e12 0%, #0a0e10 30%, #0a0c0f 100%)"
             : isPast
             ? "#090b0e"
             : "#0b0d12",
@@ -421,7 +419,7 @@ function DateCard({
           data-todo-list
           className="flex-1 px-3 py-2 overflow-y-auto"
           style={{
-            maxHeight: active ? (isMobile ? 220 : 300) : (isMobile ? 110 : 150),
+            maxHeight: active ? (isMobile ? 250 : 340) : (isMobile ? 100 : 140),
             scrollbarWidth: "thin",
             scrollbarColor: "rgba(0,255,65,0.2) transparent",
             transition: "max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1)",

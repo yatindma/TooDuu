@@ -158,60 +158,12 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Momentum scroll animation loop
-  const animateScroll = useCallback(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    container.scrollLeft += velocityRef.current;
-    velocityRef.current *= 0.92; // smooth friction decay
-
-    if (Math.abs(velocityRef.current) > 0.3) {
-      requestAnimationFrame(animateScroll);
-    } else {
-      velocityRef.current = 0;
-      isAnimatingRef.current = false;
-    }
-  }, []);
-
-  // Mouse wheel (up/down) → horizontal momentum scroll
-  useEffect(() => {
-    if (!mounted) return;
-    const container = scrollRef.current;
-    if (!container) return;
-    const handleWheel = (e: WheelEvent) => {
-      const target = e.target as HTMLElement;
-      // Walk up from target to find a scrollable todo list container
-      const scrollableParent = target.closest("[data-todo-list]") as HTMLElement | null;
-      if (scrollableParent) {
-        const { scrollTop, scrollHeight, clientHeight } = scrollableParent;
-        const atTop = scrollTop <= 0 && e.deltaY < 0;
-        const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0;
-        if (!atTop && !atBottom) {
-          e.stopPropagation();
-          return;
-        }
-      }
-      e.preventDefault();
-      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-
-      // Add to velocity with smooth acceleration (capped)
-      velocityRef.current += delta * 0.4;
-      velocityRef.current = Math.max(-80, Math.min(80, velocityRef.current));
-
-      if (!isAnimatingRef.current) {
-        isAnimatingRef.current = true;
-        requestAnimationFrame(animateScroll);
-      }
-    };
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    return () => window.removeEventListener("wheel", handleWheel);
-  }, [mounted, animateScroll]);
-
-  // Auto-select card closest to center on scroll
+  // Auto-select timer ref (used by momentum + scroll handler)
   const autoSelectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Detect center card — only fires when scroll fully stops
   const detectCenterCard = useCallback(() => {
+    if (isAnimatingRef.current) return;
     const container = scrollRef.current;
     if (!container) return;
     const centerX = container.scrollLeft + container.clientWidth / 2;
@@ -230,6 +182,60 @@ export default function Home() {
       setSelectedDate(closestDate);
     }
   }, [selectedDate]);
+
+  // Keep ref to latest detectCenterCard to avoid circular dep
+  const detectCenterCardRef = useRef(detectCenterCard);
+  detectCenterCardRef.current = detectCenterCard;
+
+  // Momentum scroll animation loop
+  const animateScroll = useCallback(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    container.scrollLeft += velocityRef.current;
+    velocityRef.current *= 0.93; // smooth friction decay
+
+    if (Math.abs(velocityRef.current) > 0.3) {
+      requestAnimationFrame(animateScroll);
+    } else {
+      velocityRef.current = 0;
+      isAnimatingRef.current = false;
+      // Momentum stopped — now detect center card
+      if (autoSelectTimerRef.current) clearTimeout(autoSelectTimerRef.current);
+      autoSelectTimerRef.current = setTimeout(() => detectCenterCardRef.current(), 100);
+    }
+  }, []);
+
+  // Mouse wheel (up/down) → horizontal momentum scroll
+  useEffect(() => {
+    if (!mounted) return;
+    const handleWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement;
+      const scrollableParent = target.closest("[data-todo-list]") as HTMLElement | null;
+      if (scrollableParent) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollableParent;
+        const atTop = scrollTop <= 0 && e.deltaY < 0;
+        const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0;
+        if (!atTop && !atBottom) {
+          e.stopPropagation();
+          return;
+        }
+      }
+      e.preventDefault();
+      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+
+      // Smooth acceleration with velocity cap
+      velocityRef.current += delta * 0.4;
+      velocityRef.current = Math.max(-80, Math.min(80, velocityRef.current));
+
+      if (!isAnimatingRef.current) {
+        isAnimatingRef.current = true;
+        requestAnimationFrame(animateScroll);
+      }
+    };
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, [mounted, animateScroll]);
 
   // Parallax + infinite past loading + auto-select on scroll
   const handleScroll = useCallback(() => {
@@ -257,9 +263,9 @@ export default function Home() {
       setPastDaysCount((prev) => prev + LOAD_MORE_PAST_DAYS);
     }
 
-    // Debounced auto-select center card
+    // Debounced auto-select center card — wait for scroll to fully stop
     if (autoSelectTimerRef.current) clearTimeout(autoSelectTimerRef.current);
-    autoSelectTimerRef.current = setTimeout(detectCenterCard, 150);
+    autoSelectTimerRef.current = setTimeout(detectCenterCard, 350);
   }, [detectCenterCard]);
 
   useEffect(() => {
