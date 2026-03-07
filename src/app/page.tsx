@@ -193,7 +193,7 @@ export default function Home() {
     if (!container) return;
 
     container.scrollLeft += velocityRef.current;
-    velocityRef.current *= 0.93; // smooth friction decay
+    velocityRef.current *= 0.88; // higher friction = stops sooner
 
     if (Math.abs(velocityRef.current) > 0.3) {
       requestAnimationFrame(animateScroll);
@@ -233,11 +233,11 @@ export default function Home() {
 
       if (isTrackpad) {
         // Trackpad: direct scroll for smoothness (no momentum needed, OS handles it)
-        container.scrollLeft += delta * 1.5;
+        container.scrollLeft += delta;
       } else {
-        // Mouse wheel: momentum-based
-        velocityRef.current += delta * 0.6;
-        velocityRef.current = Math.max(-60, Math.min(60, velocityRef.current));
+        // Mouse wheel: momentum-based (gentle)
+        velocityRef.current += delta * 0.3;
+        velocityRef.current = Math.max(-40, Math.min(40, velocityRef.current));
 
         if (!isAnimatingRef.current) {
           isAnimatingRef.current = true;
@@ -585,7 +585,7 @@ export default function Home() {
         `}</style>
 
         <div
-          className="flex items-center gap-2 sm:gap-4"
+          className="flex items-center gap-3 sm:gap-5"
           style={{
             paddingLeft: "calc(50vw - 90px)",
             paddingRight: "calc(50vw - 90px)",

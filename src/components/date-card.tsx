@@ -159,8 +159,8 @@ function DateCard({
 
   // Fixed width for ALL cards — scale transform for selected (no layout shift)
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-  const cardWidth = isMobile ? 200 : 240;
-  const cardMinHeight = isMobile ? 260 : 320;
+  const cardWidth = isMobile ? 220 : 270;
+  const cardMinHeight = isMobile ? 280 : 350;
   const active = isSelected;
 
   // Color scheme
@@ -200,8 +200,8 @@ function DateCard({
       initial={{ opacity: 0, y: 30, scale: 0.97 }}
       animate={{
         opacity: 1,
-        y: active ? (isMobile ? -12 : -20) : 0,
-        scale: active ? 1.15 : 1,
+        y: active ? (isMobile ? -8 : -14) : 0,
+        scale: active ? 1.06 : 1,
       }}
       transition={{
         duration: 0.35,
@@ -219,6 +219,7 @@ function DateCard({
       style={{
         width: cardWidth,
         minHeight: cardMinHeight,
+        zIndex: active ? 10 : 1,
       }}
     >
       {/* === Animated glowing border for selected/today === */}
@@ -417,7 +418,7 @@ function DateCard({
           data-todo-list
           className="flex-1 px-3 py-2 overflow-y-auto"
           style={{
-            maxHeight: isMobile ? 150 : 200,
+            maxHeight: isMobile ? 170 : 230,
             scrollbarWidth: "thin",
             scrollbarColor: "rgba(0,255,65,0.2) transparent",
           }}
