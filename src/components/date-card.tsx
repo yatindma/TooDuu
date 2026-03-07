@@ -201,7 +201,7 @@ function DateCard({
       animate={{
         opacity: 1,
         y: active ? (isMobile ? -8 : -14) : 0,
-        scale: active ? 1.06 : 1,
+        scale: active ? 1.12 : 1,
       }}
       transition={{
         duration: 0.35,

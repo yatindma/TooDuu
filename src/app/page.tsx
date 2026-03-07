@@ -585,7 +585,7 @@ export default function Home() {
         `}</style>
 
         <div
-          className="flex items-center gap-3 sm:gap-5"
+          className="flex items-center gap-4 sm:gap-6"
           style={{
             paddingLeft: "calc(50vw - 90px)",
             paddingRight: "calc(50vw - 90px)",
