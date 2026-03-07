@@ -206,38 +206,63 @@ export default function Home() {
     }
   }, []);
 
-  // Mouse wheel (up/down) → horizontal momentum scroll
+  // Mouse wheel → horizontal scroll (works for both mouse wheel and trackpad)
   useEffect(() => {
     if (!mounted) return;
+    const container = scrollRef.current;
+    if (!container) return;
+
     const handleWheel = (e: WheelEvent) => {
       const target = e.target as HTMLElement;
+      // Allow vertical scroll inside todo lists
       const scrollableParent = target.closest("[data-todo-list]") as HTMLElement | null;
       if (scrollableParent) {
         const { scrollTop, scrollHeight, clientHeight } = scrollableParent;
         const atTop = scrollTop <= 0 && e.deltaY < 0;
         const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0;
         if (!atTop && !atBottom) {
-          e.stopPropagation();
-          return;
+          return; // let it scroll vertically naturally
         }
       }
+
       e.preventDefault();
+
+      // Detect if trackpad (small precise deltas) vs mouse wheel (large stepped deltas)
+      const isTrackpad = Math.abs(e.deltaY) < 50 && !Number.isInteger(e.deltaY);
       const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
 
-      // Smooth acceleration with velocity cap
-      velocityRef.current += delta * 0.4;
-      velocityRef.current = Math.max(-80, Math.min(80, velocityRef.current));
+      if (isTrackpad) {
+        // Trackpad: direct scroll for smoothness (no momentum needed, OS handles it)
+        container.scrollLeft += delta * 1.5;
+      } else {
+        // Mouse wheel: momentum-based
+        velocityRef.current += delta * 0.6;
+        velocityRef.current = Math.max(-60, Math.min(60, velocityRef.current));
 
-      if (!isAnimatingRef.current) {
-        isAnimatingRef.current = true;
-        requestAnimationFrame(animateScroll);
+        if (!isAnimatingRef.current) {
+          isAnimatingRef.current = true;
+          requestAnimationFrame(animateScroll);
+        }
       }
     };
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    return () => window.removeEventListener("wheel", handleWheel);
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
   }, [mounted, animateScroll]);
 
-  // Parallax + infinite past loading + auto-select on scroll
+  // Cache parallax layers to avoid DOM queries per frame
+  const parallaxLayersRef = useRef<{ el: HTMLElement; speed: number }[]>([]);
+  useEffect(() => {
+    const bgEl = document.querySelector(".fixed.inset-0.overflow-hidden.pointer-events-none");
+    if (bgEl) {
+      parallaxLayersRef.current = Array.from(bgEl.querySelectorAll<HTMLElement>("[data-parallax-speed]")).map((el) => ({
+        el,
+        speed: parseFloat(el.dataset.parallaxSpeed || "0"),
+      }));
+    }
+  }, [mounted]);
+
+  // Scroll handler: parallax + infinite past + auto-select
   const handleScroll = useCallback(() => {
     const container = scrollRef.current;
     if (!container) return;
@@ -246,16 +271,10 @@ export default function Home() {
     const maxScroll = container.scrollWidth - container.clientWidth;
     const scrollPercent = maxScroll > 0 ? scrollLeft / maxScroll : 0;
 
-    // Move parallax layers
-    const bgEl = document.querySelector(".fixed.inset-0.overflow-hidden.pointer-events-none") as HTMLElement;
-    if (bgEl) {
-      const layers = bgEl.querySelectorAll<HTMLElement>("[data-parallax-speed]");
-      layers.forEach((layer) => {
-        const speed = parseFloat(layer.dataset.parallaxSpeed || "0");
-        const centerOffset = (scrollPercent - 0.5) * 2;
-        const translateX = centerOffset * speed * -200;
-        layer.style.transform = `translateX(${translateX}px)`;
-      });
+    // Move parallax layers (cached, no DOM queries)
+    const centerOffset = (scrollPercent - 0.5) * 2;
+    for (const { el, speed } of parallaxLayersRef.current) {
+      el.style.transform = `translateX(${centerOffset * speed * -200}px)`;
     }
 
     // Infinite past: load more when near left edge
@@ -265,7 +284,7 @@ export default function Home() {
 
     // Debounced auto-select center card — wait for scroll to fully stop
     if (autoSelectTimerRef.current) clearTimeout(autoSelectTimerRef.current);
-    autoSelectTimerRef.current = setTimeout(detectCenterCard, 350);
+    autoSelectTimerRef.current = setTimeout(detectCenterCard, 400);
   }, [detectCenterCard]);
 
   useEffect(() => {
@@ -559,8 +578,6 @@ export default function Home() {
           paddingTop: "50px",
           scrollbarWidth: "none",
           msOverflowStyle: "none",
-          WebkitOverflowScrolling: "touch",
-          scrollSnapType: "x proximity",
         }}
       >
         <style>{`
@@ -585,7 +602,6 @@ export default function Home() {
                 key={dateStr}
                 ref={(el) => { cardRefs.current[dateStr] = el; }}
                 className="date-card cursor-pointer"
-                style={{ scrollSnapAlign: "center" }}
                 onClick={() => handleCardSelect(dateStr)}
               >
                 <DateCard

@@ -179,9 +179,6 @@ body {
   align-items: flex-end;
   gap: 0;
   padding: 0 calc(50vw - 160px);
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
 }
 
 .timeline-scroll::-webkit-scrollbar {
@@ -190,8 +187,6 @@ body {
 
 .date-card {
   flex-shrink: 0;
-  scroll-snap-align: center;
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .date-card.is-today {
@@ -399,12 +394,7 @@ body {
   will-change: scroll-position;
 }
 
-/* GPU-accelerated card transitions */
-.date-card {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
+/* GPU-accelerated cards */
 
 /* Draggable todo item */
 [draggable="true"] {
