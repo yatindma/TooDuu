@@ -14,9 +14,9 @@
 
 <br/>
 
-**A beautifully over-engineered todo app that nobody asked for — but everyone deserves.**
+**The todo app that makes you WANT to be productive.**
 
-Horizontal scrollable timeline · Retro terminal aesthetic · Parallax 3D backgrounds · Local-first with optional auth
+Horizontal scrollable timeline · Retro terminal aesthetic · 5-layer parallax · Local-first with optional auth
 
 <br/>
 
@@ -30,6 +30,7 @@ Horizontal scrollable timeline · Retro terminal aesthetic · Parallax 3D backgr
 
 <div align="center">
 
+<!-- Replace with GIF for maximum impact: gifcap.dev or Kap (macOS) -->
 <img src="public/screenshots/hero.png" alt="TOODUU - Retro Terminal Todo Timeline" width="100%" />
 
 <br/>
@@ -39,11 +40,21 @@ Horizontal scrollable timeline · Retro terminal aesthetic · Parallax 3D backgr
 
 ---
 
+## 🤔 Why TOODUU?
+
+Every developer has built a todo app. None of them look like this.
+
+- **Not another boring todo list** — it's a horizontal timeline you scroll through like a sci-fi interface
+- **Visual dopamine** — 5-layer parallax, animated glowing borders, mouse-following light, neon everything
+- **Actually useful** — works without signup (localStorage), optional auth syncs across devices
+
+> Think of it as if someone from 2087 traveled back in time and built a todo app using terminal technology.
+
+---
+
 ## 🖥️ What is TOODUU?
 
 TOODUU is a **horizontal-scrolling todo timeline** wrapped in a retro-terminal aesthetic. Navigate through past and future dates, add tasks, and watch your productivity unfold across a sci-fi command line interface.
-
-> Think of it as if someone from 2087 traveled back in time and built a todo app using terminal technology.
 
 ---
 
@@ -240,10 +251,10 @@ MIT — do whatever you want with it.
 
 <div align="center">
 
-### ⭐ If you found this cool, drop a star — it helps others discover it!
+### If this made you go "damn, that's cool" — [drop a star](https://github.com/yatindma/TooDuu). It takes 1 second and helps others find it.
 
-**Built with 💚 and way too much caffeine**
+**Built with terminal green and an unhealthy amount of caffeine**
 
-*by [Yatin Arora](https://github.com/yatindma)*
+*by [Yatin Arora](https://github.com/yatindma) — AI Engineer based in Frankfurt*
 
 </div>
