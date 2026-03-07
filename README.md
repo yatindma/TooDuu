@@ -9,6 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![Version](https://img.shields.io/badge/Version-0.1.0-00ff41?style=for-the-badge&labelColor=0a0a0f)](https://github.com/yatindma/TooDuu)
 [![License: MIT](https://img.shields.io/badge/License-MIT-00ff41?style=for-the-badge&labelColor=0a0a0f)](LICENSE)
 
 <br/>
@@ -213,6 +214,21 @@ Contributions are welcome! Feel free to:
 3. Commit changes (`git commit -m 'feat: add amazing feature'`)
 4. Push to branch (`git push origin feat/amazing-feature`)
 5. Open a Pull Request
+
+---
+
+## 📌 Versioning
+
+This project follows [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`):
+
+| Bump | When | Example |
+|------|------|---------|
+| `PATCH` (0.1.X) | Bug fixes | `fix: blinking time display` |
+| `MINOR` (0.X.0) | New features | `feat: add calendar view` |
+| `MAJOR` (X.0.0) | Breaking changes | UI overhaul, API redesign |
+
+**Current version: `0.1.0`** (pre-launch)
+v1.0.0 will be tagged at public launch.
 
 ---
 
