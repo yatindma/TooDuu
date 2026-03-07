@@ -255,6 +255,6 @@ MIT — do whatever you want with it.
 
 **Built with terminal green and an unhealthy amount of caffeine**
 
-*by [Yatin Arora](https://github.com/yatindma) — AI Engineer based in Frankfurt*
+*by [Yatin Arora](https://github.com/yatindma) — AI Engineer based in Frankfurt · [LinkedIn](https://linkedin.com/in/yatin-arora)*
 
 </div>
