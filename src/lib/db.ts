@@ -14,6 +14,7 @@ const db = new Database(DB_PATH);
 
 // WAL mode for better concurrent access
 db.pragma("journal_mode = WAL");
+db.pragma("busy_timeout = 5000");
 
 // Create tables
 db.exec(`
