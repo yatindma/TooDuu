@@ -11,6 +11,8 @@ interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  justAuthenticated: boolean;
+  clearJustAuthenticated: () => void;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   register: (email: string, password: string, name?: string) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
@@ -19,6 +21,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  justAuthenticated: false,
+  clearJustAuthenticated: () => {},
   login: async () => ({}),
   register: async () => ({}),
   logout: async () => {},
@@ -27,6 +31,9 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [justAuthenticated, setJustAuthenticated] = useState(false);
+
+  const clearJustAuthenticated = useCallback(() => setJustAuthenticated(false), []);
 
   // Check session on mount
   useEffect(() => {
@@ -48,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const data = await res.json();
     if (!res.ok) return { error: data.error || "Login failed" };
     setUser({ id: data.id, email: data.email, name: data.name });
+    setJustAuthenticated(true);
     return {};
   }, []);
 
@@ -69,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, justAuthenticated, clearJustAuthenticated, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

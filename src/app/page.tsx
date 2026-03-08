@@ -50,7 +50,7 @@ export default function Home() {
   const velocityRef = useRef(0);
   const isAnimatingRef = useRef(false);
 
-  const { user, logout, loading: authLoading } = useAuth();
+  const { user, logout, loading: authLoading, justAuthenticated, clearJustAuthenticated } = useAuth();
   const { getTodosForDate, addTodo, toggleTodo, deleteTodo, moveTodo, editTodo, loadDateRange, clearTodos } = useTodos();
 
   const handleLogout = async () => {
@@ -62,9 +62,9 @@ export default function Home() {
     setTimeout(() => loadDateRange(formatDate(start), formatDate(end)), 100);
   };
 
-  // Check for local todos when user logs in - offer migration
+  // Check for local todos ONLY when user actively logs in or registers (not on refresh)
   useEffect(() => {
-    if (!user || authLoading) return;
+    if (!user || authLoading || !justAuthenticated) return;
     // Count local todos across all localStorage keys
     let localCount = 0;
     for (let i = 0; i < localStorage.length; i++) {
@@ -79,10 +79,18 @@ export default function Home() {
     if (localCount > 0) {
       setShowMigrate(true);
     }
-  }, [user, authLoading]);
+    clearJustAuthenticated();
+  }, [user, authLoading, justAuthenticated, clearJustAuthenticated]);
 
   const handleMigrate = async () => {
-    // Move all localStorage todos to the DB
+    // Fetch existing DB todos to prevent duplicates
+    const existingRes = await fetch("/api/todos").catch(() => null);
+    const existingData = existingRes ? await existingRes.json().catch(() => ({ todos: [] })) : { todos: [] };
+    const existingSet = new Set(
+      (existingData.todos || []).map((t: { text: string; date: string }) => `${t.date}::${t.text}`)
+    );
+
+    // Move localStorage todos to DB, skipping duplicates
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key?.startsWith("todos-")) {
@@ -90,6 +98,9 @@ export default function Home() {
         try {
           const todos = JSON.parse(localStorage.getItem(key) || "[]");
           for (const todo of todos) {
+            const dedupeKey = `${date}::${todo.text}`;
+            if (existingSet.has(dedupeKey)) continue; // skip duplicate
+            existingSet.add(dedupeKey); // prevent dupes within same batch
             await fetch("/api/todos", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
