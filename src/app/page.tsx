@@ -9,6 +9,7 @@ import AuthModal from "@/components/auth-modal";
 import MigrateModal from "@/components/migrate-modal";
 import useTodos from "@/hooks/use-todos";
 import { useAuth } from "@/lib/auth-context";
+import packageJson from "../../package.json";
 
 function formatDate(d: Date): string {
   const year = d.getFullYear();
@@ -214,15 +215,10 @@ export default function Home() {
 
     const handleWheel = (e: WheelEvent) => {
       const target = e.target as HTMLElement;
-      // Allow vertical scroll inside todo lists
+      // If cursor is inside a todo list, never convert to horizontal scroll
       const scrollableParent = target.closest("[data-todo-list]") as HTMLElement | null;
       if (scrollableParent) {
-        const { scrollTop, scrollHeight, clientHeight } = scrollableParent;
-        const atTop = scrollTop <= 0 && e.deltaY < 0;
-        const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0;
-        if (!atTop && !atBottom) {
-          return; // let it scroll vertically naturally
-        }
+        return; // let vertical scroll happen naturally, never bleed into horizontal
       }
 
       e.preventDefault();
@@ -406,7 +402,7 @@ export default function Home() {
           >
             TOODUU<span style={{ animation: "blink 1s step-end infinite", WebkitTextFillColor: "#00ff41" }}>_</span>
           </span>
-          <span className="font-mono text-[10px] text-[#00ff41]/20 ml-1 hidden sm:inline" style={{ animation: "blink 1.2s step-end infinite" }}>v2.0</span>
+          <span className="font-mono text-[10px] text-[#00ff41]/20 ml-1 hidden sm:inline" style={{ animation: "blink 1.2s step-end infinite" }}>v{packageJson.version}</span>
         </div>
 
         {/* Stats bar */}
