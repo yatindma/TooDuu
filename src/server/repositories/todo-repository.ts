@@ -1,5 +1,5 @@
 import { db } from "../db";
-import type { ITodoRepository, TodoRow } from "./types";
+import type { ITodoRepository, TodoRow, TodoQuery, TodoQueryResult } from "./types";
 
 class TodoRepository implements ITodoRepository {
   private readonly stmts = {
@@ -42,6 +42,46 @@ class TodoRepository implements ITodoRepository {
 
   findById(id: string, userId: string): TodoRow | undefined {
     return this.stmts.findById.get(id, userId);
+  }
+
+  query(userId: string, params: TodoQuery): TodoQueryResult {
+    const conditions: string[] = ["user_id = ?"];
+    const bindings: (string | number)[] = [userId];
+
+    if (params.startDate) {
+      conditions.push("date >= ?");
+      bindings.push(params.startDate);
+    }
+    if (params.endDate) {
+      conditions.push("date <= ?");
+      bindings.push(params.endDate);
+    }
+    if (params.search) {
+      conditions.push("LOWER(text) LIKE ?");
+      bindings.push(`%${params.search.toLowerCase()}%`);
+    }
+    if (params.status === "done") {
+      conditions.push("completed = 1");
+    } else if (params.status === "pending") {
+      conditions.push("completed = 0");
+    }
+
+    const where = conditions.join(" AND ");
+    const limit = Math.min(params.limit ?? 20, 50);
+    const offset = params.offset ?? 0;
+
+    const countRow = db
+      .prepare<(string | number)[], { cnt: number }>(`SELECT COUNT(*) as cnt FROM todos WHERE ${where}`)
+      .get(...bindings);
+    const total = countRow?.cnt ?? 0;
+
+    const todos = db
+      .prepare<(string | number)[], TodoRow>(
+        `SELECT id, text, completed, date, user_id, created_at FROM todos WHERE ${where} ORDER BY date DESC, created_at ASC LIMIT ? OFFSET ?`
+      )
+      .all(...bindings, limit, offset);
+
+    return { todos, total };
   }
 
   create(id: string, text: string, date: string, userId: string): TodoRow {

@@ -24,7 +24,7 @@ function formatTodo(t: TodoRow) {
   };
 }
 
-// GET /api/todos?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+// GET /api/todos?startDate=&endDate=&search=&status=&limit=&offset=
 export async function GET(req: Request) {
   const rl = checkRateLimit(req);
   if (!rl.allowed) return rateLimitResponse(rl.resetAt);
@@ -33,9 +33,33 @@ export async function GET(req: Request) {
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
+  const search = searchParams.get("search") ?? undefined;
+  const status = searchParams.get("status") as "done" | "pending" | "all" | null;
+  const limitStr = searchParams.get("limit");
+  const offsetStr = searchParams.get("offset");
+
+  // If search/status/limit params present, use the flexible query method
+  if (search || status || limitStr) {
+    const result = todoRepository.query(auth.userId, {
+      startDate: searchParams.get("startDate") ?? undefined,
+      endDate: searchParams.get("endDate") ?? undefined,
+      search,
+      status: status ?? "all",
+      limit: limitStr ? parseInt(limitStr, 10) : 20,
+      offset: offsetStr ? parseInt(offsetStr, 10) : 0,
+    });
+
+    return NextResponse.json({
+      todos: result.todos.map(formatTodo),
+      total: result.total,
+      truncated: result.total > result.todos.length,
+      remaining: Math.max(0, result.total - result.todos.length - (offsetStr ? parseInt(offsetStr, 10) : 0)),
+    });
+  }
+
+  // Legacy: simple date range or all
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
-
   const todos =
     startDate && endDate
       ? todoRepository.findByUserAndDateRange(auth.userId, startDate, endDate)

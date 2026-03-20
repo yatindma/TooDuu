@@ -23,10 +23,25 @@ export interface IUserRepository {
   create(id: string, email: string, name: string, hashedPassword: string): void;
 }
 
+export interface TodoQuery {
+  readonly startDate?: string;
+  readonly endDate?: string;
+  readonly search?: string;
+  readonly status?: "done" | "pending" | "all";
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
+export interface TodoQueryResult {
+  readonly todos: TodoRow[];
+  readonly total: number;
+}
+
 export interface ITodoRepository {
   findByUserAndDateRange(userId: string, startDate: string, endDate: string): TodoRow[];
   findAllByUser(userId: string): TodoRow[];
   findById(id: string, userId: string): TodoRow | undefined;
+  query(userId: string, params: TodoQuery): TodoQueryResult;
   create(id: string, text: string, date: string, userId: string): TodoRow;
   toggleCompleted(id: string, currentCompleted: number): void;
   updateDate(id: string, userId: string, newDate: string): void;
