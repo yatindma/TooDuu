@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import type { Todo } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
+import { formatDate, addDays } from "@/lib/date-utils";
 
 // =============================================
 // LOCAL STORAGE helpers (for anonymous users)
@@ -55,9 +56,8 @@ function useTodos() {
             // Initialize all dates in range
             const start = new Date(startDate);
             const end = new Date(endDate);
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-              const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-              grouped[key] = [];
+            for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
+              grouped[formatDate(d)] = [];
             }
             // Group todos by date
             for (const todo of data.todos) {
@@ -86,8 +86,8 @@ function useTodos() {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const loaded: Record<string, Todo[]> = {};
-    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
+      const dateStr = formatDate(d);
       loaded[dateStr] = readLocal(dateStr);
     }
     setTodosByDate((prev) => ({ ...prev, ...loaded }));

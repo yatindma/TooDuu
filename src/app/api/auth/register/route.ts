@@ -1,30 +1,39 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import db from "@/lib/db";
 import { randomUUID } from "crypto";
+import {
+  userRepository,
+  checkRateLimit,
+  rateLimitResponse,
+  validateBody,
+  registerSchema,
+  config,
+} from "@/server";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const rl = checkRateLimit(req, config.rateLimit.authMaxRequests);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
+  const parsed = await validateBody(req, registerSchema);
+  if ("error" in parsed) return parsed.error;
+
   try {
-    const { email, password, name } = await req.json();
+    const { email, password, name } = parsed.data;
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password required" }, { status: 400 });
-    }
-
-    const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+    const existing = userRepository.findByEmail(email);
     if (existing) {
       return NextResponse.json({ error: "User already exists" }, { status: 409 });
     }
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, config.auth.saltRounds);
     const id = randomUUID();
-    db.prepare("INSERT INTO users (id, email, name, password) VALUES (?, ?, ?, ?)").run(
-      id, email, name || email.split("@")[0], hashed
-    );
+    const displayName = name || email.split("@")[0];
 
-    return NextResponse.json({ id, email, name: name || email.split("@")[0] });
+    userRepository.create(id, email, displayName, hashed);
+
+    return NextResponse.json({ id, email, name: displayName });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
