@@ -1,0 +1,35 @@
+# Tooduu — Self-hosted deployment
+# Copy this file: cp docker-compose.example.yml docker-compose.yml
+# Then edit AUTH_SECRET and (optionally) the Traefik host rule.
+
+services:
+  tooduu:
+    build: .
+    container_name: tooduu
+    restart: unless-stopped
+    ports:
+      - "3000:3000"       # Direct access. Remove if using Traefik.
+    environment:
+      - NODE_ENV=production
+      - AUTH_SECRET=CHANGE_ME   # Run: openssl rand -hex 32
+    volumes:
+      - tooduu-data:/app/data   # SQLite persisted here
+
+    # ── Uncomment below for Traefik (auto HTTPS) ──
+    # networks:
+    #   - traefik-proxy
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.tooduu.rule=Host(`todos.yourdomain.com`)"
+    #   - "traefik.http.routers.tooduu.entrypoints=websecure"
+    #   - "traefik.http.routers.tooduu.tls=true"
+    #   - "traefik.http.routers.tooduu.tls.certresolver=letsencrypt"
+    #   - "traefik.http.services.tooduu.loadbalancer.server.port=3000"
+
+volumes:
+  tooduu-data:
+
+# ── Uncomment for Traefik ──
+# networks:
+#   traefik-proxy:
+#     external: true

@@ -197,22 +197,137 @@ src/
 
 ---
 
-## 🐳 Deployment
+## 🐳 Self-Host Your Own
 
-TOODUU runs on Docker with Traefik as reverse proxy:
+Deploy TOODUU on your own server in under 5 minutes. No external database, no Redis, no config hell — just Docker.
+
+### Option 1: Docker Compose (Recommended)
+
+```bash
+# 1. Clone
+git clone https://github.com/yatindma/TooDuu.git
+cd TooDuu
+
+# 2. Create your docker-compose.yml
+cp docker-compose.example.yml docker-compose.yml
+
+# 3. Edit: set your domain and a random auth secret
+#    AUTH_SECRET → any random string (e.g. openssl rand -hex 32)
+#    Host rule  → your domain
+nano docker-compose.yml
+
+# 4. Start
+docker compose up -d --build
+
+# 5. Verify
+curl http://localhost:3000
+# → HTML response = it's working
+```
+
+<details>
+<summary><strong>docker-compose.yml example</strong></summary>
 
 ```yaml
-# docker-compose.yml highlights
 services:
   tooduu:
     build: .
+    container_name: tooduu
+    restart: unless-stopped
+    ports:
+      - "3000:3000"       # Remove if using Traefik
+    environment:
+      - NODE_ENV=production
+      - AUTH_SECRET=your-random-secret-here  # CHANGE THIS
+    volumes:
+      - tooduu-data:/app/data  # SQLite persisted here
+
+volumes:
+  tooduu-data:
+```
+
+</details>
+
+<details>
+<summary><strong>With Traefik (auto HTTPS)</strong></summary>
+
+```yaml
+services:
+  tooduu:
+    build: .
+    container_name: tooduu
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - AUTH_SECRET=your-random-secret-here  # CHANGE THIS
+    volumes:
+      - tooduu-data:/app/data
+    networks:
+      - traefik-proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.tooduu.rule=Host(`your-domain.com`)"
+      - "traefik.http.routers.tooduu.rule=Host(`todos.yourdomain.com`)"
+      - "traefik.http.routers.tooduu.entrypoints=websecure"
+      - "traefik.http.routers.tooduu.tls=true"
       - "traefik.http.routers.tooduu.tls.certresolver=letsencrypt"
-    volumes:
-      - tooduu-data:/app/data  # Persistent SQLite
+      - "traefik.http.services.tooduu.loadbalancer.server.port=3000"
+
+volumes:
+  tooduu-data:
+
+networks:
+  traefik-proxy:
+    external: true
 ```
+
+</details>
+
+### Option 2: Run Directly (No Docker)
+
+```bash
+git clone https://github.com/yatindma/TooDuu.git
+cd TooDuu
+npm install
+npm run build
+AUTH_SECRET=your-random-secret-here NODE_ENV=production npm start
+```
+
+SQLite auto-creates in `./data/` — no database setup needed.
+
+### Option 3: Connect AI (MCP Server)
+
+Want Claude or ChatGPT to manage your self-hosted todos? Deploy the [Tooduu MCP Server](https://github.com/yatindma/tooduu-mcp) alongside:
+
+```bash
+git clone https://github.com/yatindma/tooduu-mcp.git
+cd tooduu-mcp
+cp .env.example .env
+# Set TOODUU_API_URL to your web app URL
+# Set MCP_BASE_URL to your MCP server's public URL
+docker compose up -d --build
+```
+
+Then add the MCP URL to Claude: `https://mcp.yourdomain.com/mcp`
+
+> **Same account, same todos.** Sign in once — your todos sync between the web app and AI assistants automatically.
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|:--------:|---------|-------------|
+| `AUTH_SECRET` | Yes | — | Secret for JWT signing. Use `openssl rand -hex 32` to generate. |
+| `NODE_ENV` | No | `development` | Set to `production` for optimized build |
+| `PORT` | No | `3000` | Server port |
+
+### What Gets Persisted
+
+```
+/app/data/
+├── tooduu.db          # All users + todos (SQLite, WAL mode)
+├── tooduu.db-wal      # Write-ahead log
+└── tooduu.db-shm      # Shared memory
+```
+
+Mount `/app/data` as a Docker volume to survive container rebuilds.
 
 ---
 
