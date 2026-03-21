@@ -18,6 +18,8 @@
 
 Horizontal scrollable timeline · Retro terminal aesthetic · 5-layer parallax · Local-first with optional auth
 
+**Part of the Tooduu ecosystem:** [Web App](https://github.com/yatindma/TooDuu) (this repo) · [MCP Server](https://github.com/yatindma/tooduu-mcp) (AI assistant bridge)
+
 <br/>
 
 [🔴 Live Demo](https://tooduu.srv1302879.hstgr.cloud) · [Report Bug](https://github.com/yatindma/TooDuu/issues) · [Request Feature](https://github.com/yatindma/TooDuu/issues)
